@@ -187,7 +187,7 @@ function World:emit(event, ...)
     self._emitDepth = self._emitDepth + 1
 
     for _, system in ipairs(self._systems) do
-        if system[event] then
+        if type(system[event]) == "function" then
 
             if self._emitDepth == 1 then
                 for _, pool in ipairs(self._pools) do
