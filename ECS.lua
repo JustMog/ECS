@@ -133,6 +133,7 @@ local function newWorld(...)
     local world = setmetatable({
         _systems = {},
         _pools = {},
+        _emitDepth = 0,
     }, World)
 
     local systems = {}
@@ -183,14 +184,21 @@ function worldRecheckEntity(world, e)
 end
 
 function World:emit(event, ...)
+    self._emitDepth = self._emitDepth + 1
+
     for _, system in ipairs(self._systems) do
         if system[event] then
-            for _, pool in ipairs(self._pools) do
-                pool:update()
+
+            if self._emitDepth == 1 then
+                for _, pool in ipairs(self._pools) do
+                    pool:update()
+                end
             end
             system[event](system, ...)
         end
     end
+
+    self._emitDepth = self._emitDepth - 1
 end
 
 ---------------------------------------------

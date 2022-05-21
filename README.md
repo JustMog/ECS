@@ -58,7 +58,7 @@ e.pos = nil
 e.dead = true
 
 ```
-System pools will be updated to reflect addition/removal of components before each new callback invocation.
+System pools will be updated to reflect addition/removal of components before each new (non-nested) callback invocation.
 
 # Systems
 
@@ -108,7 +108,7 @@ function system:onRemoved(entity, pool)
 end
 
 ```
-Addition and removal of entities from pools happens before each new callback invocation.
+Addition and removal of entities from pools happens before each new callback invocation, except those triggered from within another callback.
 
 Adding or removing components from entities within a callback won't be reflected in pools or trigger onAdded/onRemoved events immediately.
 
