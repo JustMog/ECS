@@ -72,8 +72,13 @@ function Pool:recheck(e)
     local hasEntity = self.entities[e]
 
     if match and not hasEntity then
-        table.insert(self.entities, e)
+        table.insert(self.entities, 1, e)
         self.entities[e] = true
+
+        for iterNum, iterVal in ipairs(self.iterators) do
+            self.iterators[iterNum] = iterVal + 1
+        end
+
         self:onAdded(e)
 
     elseif hasEntity and not match then
@@ -160,6 +165,7 @@ local function removeEntity(e)
     e._world = nil
     setmetatable(e, nil)
     for k, v in pairs(e._components) do e[k] = v end
+    e._components = nil
 end
 
 function worldRecheckEntity(world, e)
