@@ -174,6 +174,7 @@ local function removeEntity(e)
     e._world = nil
     setmetatable(e, nil)
     for k, v in pairs(e._components) do e[k] = v end
+    e._components = nil
 end
 
 function worldRecheckEntity(world, e)
