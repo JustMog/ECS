@@ -29,29 +29,32 @@ function Pool:new(filter)
     local pool = setmetatable({
         keys = filter,
         entities = {},
-        changes = {},
-        added = {},
-        removed = {},
         listeners = {},
+        iterators = {},
     }, Pool)
 
-    pool.accessor = makeAccessor(pool.entities)
+    pool.accessor = makeAccessor(pool)
     return pool
 end
 
-function makeAccessor(t)
+function makeAccessor(pool)
     local accessor, mt = {}, {}
 
-    function accessor:copy()
-        local copy = {}
-        for i, v in ipairs(t) do
-            copy[i] = v
-        end
-        return copy
-    end
-
     function mt:__call()
-        return ipairs(t)
+        table.insert(pool.iterators, 0)
+
+        return function()
+            local i = pool.iterators[#pool.iterators]
+            i = i + 1
+
+            if i > #pool.entities then
+                table.remove(pool.iterators)
+                return
+            end
+
+            pool.iterators[#pool.iterators] = i
+            return pool.entities[i]
+        end
     end
     return setmetatable(accessor, mt)
 end
@@ -68,46 +71,35 @@ function Pool:recheck(e)
 
     local hasEntity = self.entities[e]
 
-    if match ~= hasEntity then
-        self.changes[e] = match
-    end
-end
+    if match and not hasEntity then
+        table.insert(self.entities, 1, e)
+        self.entities[e] = true
 
-function Pool:update()
-    while(next(self.changes)) do
-        --remove
-        for i = #self.entities, 1, -1 do
-            local e = self.entities[i]
+        for iterNum, iterVal in ipairs(self.iterators) do
+            self.iterators[iterNum] = iterVal + 1
+        end
 
-            if self.changes[e] == false then
-                self.changes[e] = nil
+        self:onAdded(e)
 
+    elseif hasEntity and not match then
+
+        for entityNum, entity in ipairs(self.entities) do
+            if entity == e then
+                table.remove(self.entities, entityNum)
                 self.entities[e] = nil
-                table.remove(self.entities, i)
-                table.insert(self.removed, e)
+
+                for iterNum, iterVal in ipairs(self.iterators) do
+                    if entityNum <= iterVal then
+                        self.iterators[iterNum] = iterVal - 1
+                    end
+                end
+                self:onRemoved(e)
+                break
+
             end
         end
 
-        --add
-        for e in pairs(self.changes) do
-            if self.changes[e] == true then
-                table.insert(self.entities, e)
-                table.insert(self.added, e)
-            end
-            self.changes[e] = nil
-        end
-
-        for i, e in ipairs(self.added) do
-            self:onAdded(e)
-            table.remove(self.added, i)
-        end
-
-        for i, e in ipairs(self.removed) do
-            self:onRemoved(e)
-            table.remove(self.removed, i)
-        end
     end
-
 end
 
 function Pool:onAdded(e)
@@ -133,7 +125,6 @@ local function newWorld(...)
     local world = setmetatable({
         _systems = {},
         _pools = {},
-        _emitDepth = 0,
     }, World)
 
     local systems = {}
@@ -185,21 +176,11 @@ function worldRecheckEntity(world, e)
 end
 
 function World:emit(event, ...)
-    self._emitDepth = self._emitDepth + 1
-
     for _, system in ipairs(self._systems) do
         if type(system[event]) == "function" then
-
-            if self._emitDepth == 1 then
-                for _, pool in ipairs(self._pools) do
-                    pool:update()
-                end
-            end
             system[event](system, ...)
         end
     end
-
-    self._emitDepth = self._emitDepth - 1
 end
 
 ---------------------------------------------

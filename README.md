@@ -58,7 +58,8 @@ e.pos = nil
 e.dead = true
 
 ```
-System pools will be updated to reflect addition/removal of components before each new (non-nested) callback invocation.
+System pools will be updated to reflect addition/removal of components immediately.
+However, in-progress iterations of pools won't see new entities.
 
 # Systems
 
@@ -79,15 +80,7 @@ local someSystem = { "someComponent", "someOtherComponent" }
 
 ```lua
 -- in system callback, call the pool as a function to iterate over the entities in it
-for i, e in self.entities() do
-    -- do something with e
-end
-
--- to sort or otherwise mutate the pool, you must create a copy:
-local sortedEntities = self.entities:copy()
-table.sort(sortedEntities)
-
-for i, e in ipairs(sortedEntities) do
+for e in self.entities() do
     -- do something with e
 end
 ```
@@ -108,9 +101,6 @@ function system:onRemoved(entity, pool)
 end
 
 ```
-Addition and removal of entities from pools happens before each new callback invocation, except those triggered from within another callback.
-
-Adding or removing components from entities within a callback won't be reflected in pools or trigger onAdded/onRemoved events immediately.
 
 ### Custom callbacks:
 ```lua
