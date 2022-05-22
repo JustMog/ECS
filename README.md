@@ -20,7 +20,7 @@ end
 -- define callbacks
 function velocitySystem:update(dt)
     -- iterate entities with self.pool()
-    for i, e in self.pool() do
+    for e in self.pool() do
         e.pos.x = e.pos.x + e.vel.x * dt
         e.pos.y = e.pos.y + e.vel.y * dt
     end
