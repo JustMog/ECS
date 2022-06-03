@@ -187,6 +187,9 @@ end
 
 local getPool
 function newSystem(def, world)
+    local d = {}
+    for k, v in pairs(def) do d[k] = v end
+    def = d
 
     local s = { name = def.name, getWorld = function() return world end }
 
