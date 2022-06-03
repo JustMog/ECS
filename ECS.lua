@@ -230,7 +230,7 @@ function poolErr(poolName, systemName)
     error(
         ("Invalid pool definition for %s, pool '%s'. must be a table of keys")
         :format(systemName and ("system '%s'"):format(systemName) or "unnamed system", poolName)
-    , 4)
+    , 5)
 end
 
 return newWorld
