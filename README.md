@@ -119,6 +119,9 @@ In callbacks, get the world a system is in with:
 self:getWorld()
 ```
 
+Be aware that changes to a system *definition* wont affect *already existing instances* of that system.
+To e.g. add a callback to a system *after its creation*, change the instance returned by the world instead.
+
 # Worlds
 ```lua
 -- use the function returned by requiring ECS.lua to create a world:
@@ -137,7 +140,7 @@ local world, systems = World(gravitySystem, velocitySystem)
     velocitySystem
 }
 ```
-If a system definition define a name, the returned table will also contain its instance under that key:
+If a system definition defines a name, the returned table will also contain its instance under that key:
 ```lua
 local namedSystem = { name = "mog" }
 local world, systems = World(namedSystem)
