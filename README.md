@@ -143,4 +143,3 @@ local world, systems = World(namedSystem)
     mog = namedSystem
 }
 ```
-No validation for system names or component keys as yet so don't call them "())====D ~~~" or something.
