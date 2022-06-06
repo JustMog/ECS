@@ -187,24 +187,25 @@ end
 
 local getPool
 function newSystem(def, world)
-    local d = {}
-    for k, v in pairs(def) do d[k] = v end
-    def = d
 
-    local s = { name = def.name, getWorld = function() return world end }
+    local s = setmetatable(
+        { getWorld = function() return world end },
+        { __index = def }
+    )
 
-    if #def > 0 then def.pool = def.pool or def end
-
-    for poolName, v in pairs(def) do
+    local pools = {}
+    for k, v in pairs(def) do
         if type(v) == "table" then
-            local pool = getPool(v, world, poolName, def.name)
-            s[poolName] = pool.accessor
-            table.insert(pool.listeners, s)
+            pools[k] = v
         end
     end
+    if #def > 0 and not pools.pool then pools.pool = def end
 
-    def.__index = def
-    setmetatable(s, def)
+    for poolName, poolReqs in pairs(pools) do
+        local pool = getPool(poolReqs, world, poolName, def.name)
+        s[poolName] = pool.accessor
+        table.insert(pool.listeners, s)
+    end
 
     if s.init then s:init() end
     return s

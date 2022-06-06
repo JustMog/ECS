@@ -70,16 +70,13 @@ local velocitySystem = {}
 ### Pools:
 
 ```lua
--- to access entities, define pools using tables of required component names.
+-- to access entities, define pools using tables containing names of required components.
 velocitySystem.entities = { "pos", "vel" }
--- use the same keys in system callbacks to access the pools.
 
--- you can also define a default pool with the key "pool" like so
+-- you can also define a default pool with the name "pool" like so
 local someSystem = { "someComponent", "someOtherComponent" }
-```
 
-```lua
--- in system callback, call the pool as a function to iterate over the entities in it
+-- in system callbacks, call the pool as a function to iterate over the entities in it
 for e in self.entities() do
     -- do something with e
 end
@@ -89,7 +86,7 @@ end
 
 ```lua
 function system:init()
-    -- called when the system is created, upon being passed to a world
+    -- called when the system is created, upon its definition being passed to a world
 end
 
 function system:onAdded(entity, pool)
@@ -119,9 +116,6 @@ In callbacks, get the world a system is in with:
 self:getWorld()
 ```
 
-Be aware that changes to a system *definition* wont affect *already existing instances* of that system.
-To e.g. add a callback to a system *after its creation*, change the instance returned by the world instead.
-
 # Worlds
 ```lua
 -- use the function returned by requiring ECS.lua to create a world:
@@ -130,8 +124,8 @@ local World = require "ECS"
 -- pass systems definitions to the world:
 local world = World(gravitySystem, velocitySystem)
 ```
-Systems will receive callbacks in the order in which they were passed to create the world.
-The system instances created from the passed definitions will be returned in a table along with the world:
+Systems will receive callbacks in the order their definitions were passed to create the world.
+The system instances created will be returned in a table along with the world:
 ```lua
 local world, systems = World(gravitySystem, velocitySystem)
 
@@ -140,7 +134,7 @@ local world, systems = World(gravitySystem, velocitySystem)
     velocitySystem
 }
 ```
-If a system definition defines a name, the returned table will also contain its instance under that key:
+If a system definition contains a name, the returned table will also contain its instance under that key:
 ```lua
 local namedSystem = { name = "mog" }
 local world, systems = World(namedSystem)
